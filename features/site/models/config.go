@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/jinzhu/gorm"
+	"github.com/lucasasoaresmar/features-go/adapters/helpers"
 )
 
 // Config model
@@ -16,30 +17,47 @@ type ConfigRepository struct{}
 
 // Migrate site configuration
 func (cr *ConfigRepository) Migrate() (err error) {
-	execute(func(db *gorm.DB) {
-		db.AutoMigrate(&Config{})
-		db.Create(&Config{Name: "My", Description: "Desc"})
+	helpers.ExecGORM(func(db *gorm.DB) {
+		err = db.AutoMigrate(&Config{}).Error
+		if err != nil {
+			return
+		}
+
+		err = db.Create(&Config{Name: "My", Description: "Desc"}).Error
+		if err != nil {
+			return
+		}
 	})
 
-	return nil
+	return err
 }
 
 // Get site configuration
 func (cr *ConfigRepository) Get() (config Config, err error) {
-	execute(func(db *gorm.DB) {
-		db.First(&config, 1)
+	helpers.ExecGORM(func(db *gorm.DB) {
+		err = db.First(&config).Limit(1).Error
+		if err != nil {
+			return
+		}
 	})
 
-	return config, nil
+	return config, err
 }
 
 // Update site configuration
 func (cr *ConfigRepository) Update(configChanges *Config) (updatedConfig Config, err error) {
 
-	execute(func(db *gorm.DB) {
-		db.First(&updatedConfig, 1)
-		db.Model(&updatedConfig).Updates(configChanges)
+	helpers.ExecGORM(func(db *gorm.DB) {
+		err = db.First(&updatedConfig).Limit(1).Error
+		if err != nil {
+			return
+		}
+
+		err = db.Model(&updatedConfig).Updates(configChanges).Error
+		if err != nil {
+			return
+		}
 	})
 
-	return updatedConfig, nil
+	return updatedConfig, err
 }
